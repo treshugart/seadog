@@ -1,0 +1,32 @@
+{
+  "name": "seadog",
+  "version": "0.0.0",
+  "description": "A framework for building command-line toos with React and Ink.",
+  "main": "src/index.js",
+  "scripts": {},
+  "author": "Trey Shugart <treshugart@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/preset-flow": "^7.0.0",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/register": "^7.4.4",
+    "babel-file": "^3.0.0",
+    "babel-preset-env": "^1.7.0",
+    "babylon-options": "^2.0.1",
+    "camelcase": "^5.3.1",
+    "cosmiconfig": "^5.2.1",
+    "decamelize": "^3.2.0",
+    "esm": "^3.2.24",
+    "extract-react-types": "^0.17.0",
+    "fs-extra": "^8.0.1",
+    "ink": "^2.1.1",
+    "minimist": "^1.2.0",
+    "react": "^16.8.6",
+    "read-pkg-up": "^6.0.0",
+    "ts-node": "^8.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^3.4.5"
+  }
+}
