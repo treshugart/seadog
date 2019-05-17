@@ -11,7 +11,6 @@ const {
 } = require("extract-react-types");
 const fs = require("fs-extra");
 const { render, Text } = require("ink");
-const meow = require("meow");
 const minimist = require("minimist");
 const path = require("path");
 const React = require("react");

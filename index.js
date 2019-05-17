@@ -1,1 +1,1 @@
-require("./src")("./bin");
+require(".")("./bin");
