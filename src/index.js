@@ -89,27 +89,31 @@ async function getComponentInfo(componentPath) {
   );
 
   const components = require(componentPath);
-  const formattedComponents = exportedComponents.map(extractedTypes => {
+  return exportedComponents.map(extractedTypes => {
     const isDefault =
       extractedTypes.path.parent.type === "ExportDefaultDeclaration";
     const componentName = extractedTypes.name;
     const description =
-      extractedTypes.component.value &&
-      extractedTypes.component.value.trailingComments &&
-      extractedTypes.component.value.trailingComments
-        .map(c => c.value)
-        .join("\n  ");
-    const flags =
-      extractedTypes.component.value &&
-      extractedTypes.component.value.members &&
-      extractedTypes.component.value.members.map(m => ({
-        alias: m.key.name[0],
-        default: m.default ? m.default.value : null,
-        description: m.leadingComments.map(c => c.value).join(" "),
-        name: decamelize(m.key.name),
-        optional: !!m.default,
-        type: m.value.kind
-      }));
+      (extractedTypes.component.value &&
+        extractedTypes.component.value.trailingComments &&
+        extractedTypes.component.value.trailingComments
+          .map(c => c.value)
+          .join("\n  ")) ||
+      "";
+    const props =
+      (extractedTypes.component.value &&
+        extractedTypes.component.value.members &&
+        extractedTypes.component.value.members.map(m => ({
+          default: m.default ? m.default.value : null,
+          description:
+            (m.leadingComments &&
+              m.leadingComments.map(c => c.value).join(" ")) ||
+            "",
+          name: decamelize(m.key.name),
+          optional: !!m.default,
+          type: m.value.kind
+        }))) ||
+      [];
     const commandName = decamelize(componentName, "-");
 
     return {
@@ -117,12 +121,14 @@ async function getComponentInfo(componentPath) {
       component: components[isDefault ? "default" : componentName],
       componentName,
       description,
-      flags,
-      isDefault
+      isDefault,
+      props
     };
   });
+}
 
-  return formattedComponents.reduce((o, c) => {
+function componentsArrayToObject(components) {
+  return components.reduce((o, c) => {
     o[c.commandName] = c;
 
     // If this is the default export we also alias it as the default command.
@@ -139,24 +145,32 @@ async function getComponentInfo(componentPath) {
 module.exports = async function run(entries) {
   const args = minimist(process.argv.splice(2));
   const command = args._[0] || "default";
-  const props = { command, ...args };
+  const props = { _: command, ...args };
 
   if (!Array.isArray(entries)) {
     entries = [entries];
   }
 
   // TODO check CLI param values against types.
-  const components = await entries.reduce(
-    async (o, e) => ({
-      ...(await o),
-      ...(await getComponentInfo(path.join(process.cwd(), e)))
-    }),
-    await getComponentInfo(path.join(__dirname, "commands"))
-  );
 
-  if (components[command]) {
+  const componentsArray = (await getComponentInfo(
+    path.join(__dirname, "commands")
+  )).concat(
+    ...(await Promise.all(
+      entries.map(
+        async e => await getComponentInfo(path.join(process.cwd(), e))
+      )
+    ))
+  );
+  const componentsObject = componentsArrayToObject(componentsArray);
+
+  if (componentsObject[command]) {
     render(
-      React.createElement(components[command].component, props, components)
+      React.createElement(
+        componentsObject[command].component,
+        props,
+        componentsArray
+      )
     );
   } else {
     throw new Error(`The command "${command}" does not exist.`);

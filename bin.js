@@ -3,7 +3,10 @@ import { Text } from "ink";
 
 type Props = {
   // The name to say hello to.
-  name: string
+  name: string,
+
+  // Testing.
+  asdfasdf: string
 };
 
 function Layout({ children }) {
@@ -19,7 +22,8 @@ function Layout({ children }) {
 // Prints "Hello, [name]!".
 export default class Test extends React.Component<Props> {
   static defaultProps = {
-    name: "World"
+    name: "World",
+    asdfasdf: "gaga"
   };
   render() {
     return <Layout>Hello, {this.props.name}!</Layout>;
