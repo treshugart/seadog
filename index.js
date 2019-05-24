@@ -1,1 +1,1 @@
-require(".")("./bin");
+require(".").run("./bin");
