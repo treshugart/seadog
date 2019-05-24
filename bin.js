@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "ink";
+import { Box } from "ink";
 
 type Props = {
   // The name to say hello to.
@@ -9,30 +9,19 @@ type Props = {
   asdfasdf: string
 };
 
-function Layout({ children }) {
-  return (
-    <Text>
-      {"\n"}
-      {children}
-      {"\n\n"}
-    </Text>
-  );
-}
-
 // Prints "Hello, [name]!".
 export default class Test extends React.Component<Props> {
   static defaultProps = {
-    name: "World",
-    asdfasdf: "gaga"
+    name: "World"
   };
   render() {
-    return <Layout>Hello, {this.props.name}!</Layout>;
+    return <Box>Hello, {this.props.name}!</Box>;
   }
 }
 
 // Another testable component.
 export class AnotherTest extends React.Component<{}> {
   render() {
-    return <Layout>Another test</Layout>;
+    return <Box>Another test</Box>;
   }
 }

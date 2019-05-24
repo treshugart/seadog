@@ -1,6 +1,6 @@
-import { Text } from "ink";
+import { Box, Text } from "ink";
 import React from "react";
-import { Layout, Prose } from "./components";
+import { Indent, Layout, Line, Prose } from "./components";
 
 type HelpProps = {
   children: Array<Object>,
@@ -13,49 +13,56 @@ const HelpOne = ({ children, command }) => {
   const cmd = children.reduce((p, c) => {
     return c.commandName === command ? c : p;
   });
+  const props = cmd.props.filter(p => p.name !== "children");
+  const maxName = Object.keys(props).reduce((p, n) => {
+    const nl = props[n].name.length;
+    return p > nl ? p : nl;
+  }, 0);
+  const maxType = Object.keys(props).reduce((p, n) => {
+    const nl = props[n].type.length;
+    return p > nl ? p : nl;
+  }, 0);
 
-  const maxName = Object.keys(cmd.props).reduce((p, n) => {
-    const nl = cmd.props[n].name.length;
-    return p > nl ? p : nl;
-  }, 0);
-  const maxType = Object.keys(cmd.props).reduce((p, n) => {
-    const nl = cmd.props[n].type.length;
-    return p > nl ? p : nl;
-  }, 0);
   return (
-    <Prose>{`
-      Usage
-      -----
-
-        ${cmd.commandName}${Object.keys(cmd.props)
-      .map(k => {
-        const prop = cmd.props[k];
-        return ` --${prop.name}=${
-          prop.optional ? JSON.stringify(prop.default) : "[required]"
-        }`;
-      })
-      .join("")}${
-      cmd.props.length
-        ? `
-
-      Options
-      -------
-
-        ${Object.keys(cmd.props)
-          .filter(k => cmd.props[k].description)
-          .map(k => {
-            const prop = cmd.props[k];
+    <Layout>
+      <Prose>{`
+        Usage
+        -----
+      `}</Prose>
+      <Box>
+        <Indent>{cmd.commandName}</Indent>
+        {Object.keys(props).map(k => {
+          const prop = props[k];
+          return ` --${prop.name}=${
+            prop.optional ? JSON.stringify(prop.default) : "[required]"
+          }`;
+        })}
+      </Box>
+      {props.length ? (
+        <>
+          <Line />
+          <Prose>{`
+            Options
+            -------
+          `}</Prose>
+          {Object.keys(props).map(k => {
+            const prop = props[k];
             const description = ` ${prop.description}`;
             const indentName = " ".repeat(maxName - prop.name.length + 2);
             const indentType = " ".repeat(maxType - prop.type.length);
             const name = `${prop.name}`;
             const type = ` ${prop.type}`;
-            return indentName + name + type + indentType + description;
-          })
-          .join("\n        ")}`
-        : ""
-    }
-    `}</Prose>
+            return (
+              <Line key={name}>
+                {indentName + name + type + indentType + description}
+              </Line>
+            );
+          })}
+        </>
+      ) : (
+        ""
+      )}
+    </Layout>
   );
 };
 
@@ -66,24 +73,22 @@ const HelpAll = ({ children }) => {
     return p > nl ? p : nl;
   }, 0);
   return (
-    <Prose>{`
-      Usage
-      -----
-
-        help
-        help --command cmd-name
-      
-      Available commands
-      ------------------
-        ${children
-          .map(
-            c => `
-        ${" ".repeat(max - c.commandName.length)}${c.commandName} ${
-              c.description
-            }`
-          )
-          .join("")}
-    `}</Prose>
+    <Layout>
+      <Prose>{`
+        Usage
+        -----
+          help
+          help --command cmd-name
+            
+        Available commands
+        ------------------
+      `}</Prose>
+      {children.map(c => (
+        <Line key={c.commandName} indent={max - c.commandName.length + 2}>
+          {`${c.commandName} ${c.description}`}
+        </Line>
+      ))}
+    </Layout>
   );
 };
 
@@ -94,13 +99,13 @@ export class Help extends React.Component<HelpProps> {
   };
   render() {
     return (
-      <Layout>
+      <>
         {this.props.command.length ? (
           <HelpOne {...this.props} />
         ) : (
           <HelpAll {...this.props} />
         )}
-      </Layout>
+      </>
     );
   }
 }
