@@ -1,3 +1,5 @@
+const { promisify } = require("util");
+
 const babelFile = require("babel-file");
 const babylonOptions = require("babylon-options");
 const camelcase = require("camelcase");
@@ -11,6 +13,7 @@ const fs = require("fs-extra");
 const { render, Text } = require("ink");
 const minimist = require("minimist");
 const path = require("path");
+const resolve = promisify(require("resolve"));
 const React = require("react");
 const readPkgUp = require("read-pkg-up");
 
@@ -50,8 +53,15 @@ async function getBabelConfig() {
 }
 
 async function getTsConfig() {
-  const { config } = (await cosmiconfig("tsconfig").search()) || {};
-  return config;
+  const search = await cosmiconfig("tsconfig").search();
+  return search
+    ? search.config
+    : {
+        compilerOptions: {
+          allowJs: true,
+          jsx: "react"
+        }
+      };
 }
 
 // TODO - AOT compile babel for prod (can use this for dev).
@@ -65,7 +75,10 @@ async function registerTypeScript() {
 }
 
 async function getComponentInfo(componentPath) {
-  const componentFile = require.resolve(componentPath);
+  const componentFile = await resolve(componentPath, {
+    basedir: process.cwd(),
+    extensions: [".ts", ".tsx"]
+  });
   const componentFileContents = await fs.readFile(componentFile);
   const pkg = (await readPkgUp()).package;
   const dep = pkg.devDependencies || {};
@@ -152,7 +165,7 @@ async function run(entries) {
   // TODO check CLI param values against types.
 
   const componentsArray = (await getComponentInfo(
-    path.join(__dirname, "commands")
+    path.join(__dirname, "commands.js")
   )).concat(
     ...(await Promise.all(
       entries.map(
