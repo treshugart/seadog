@@ -1,6 +1,6 @@
 {
   "name": "seadog",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A framework for building command-line toos with React and Ink.",
   "main": "src/index.js",
   "scripts": {},
