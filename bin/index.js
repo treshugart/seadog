@@ -36,7 +36,12 @@ async function createBabelFile(filename) {
   });
 }
 
-async function createEntry(src, dst) {
+async function createJsEntry(dst) {
+  const code = `require("./${dst}");`;
+  await fs.outputFile(path.join(dst, "index.js"), code);
+}
+
+async function createTsEntry(src, dst) {
   const info = await getComponentInfo(src);
   const code = `
     import * as ink from "ink";
@@ -56,7 +61,7 @@ async function createEntry(src, dst) {
       throw new Error(\`The command "\${command}" does not exist.\`);
     }
   `;
-  await fs.outputFile("./bin/index.tsx", code);
+  await fs.outputFile(path.join(dst, "index.tsx"), code);
 }
 
 async function getComponentInfo(componentPath) {
@@ -125,16 +130,7 @@ async function getComponentInfo(componentPath) {
 
 async function getConfig() {
   const search = await cosmiconfig("tsconfig").search();
-  return search
-    ? search.config
-    : {
-        compilerOptions: {
-          allowJs: true,
-          esModuleInterop: true,
-          jsx: "react",
-          outDir: "bin"
-        }
-      };
+  return search ? search.config : {};
 }
 
 function makeCliOptions(opt, joiner) {
@@ -147,9 +143,9 @@ function makeCliOptions(opt, joiner) {
       o = v ? o : `no-${o}`;
       v = "";
     } else if (Array.isArray(v)) {
-      v = `="${v.join(",")}"`;
+      v = ` ${v.join(",")}`;
     } else {
-      v = `="${v}"`;
+      v = ` ${v}`;
     }
     formatted.push(`--${o}${v}`);
   }
@@ -158,20 +154,28 @@ function makeCliOptions(opt, joiner) {
 
 (async () => {
   const tsconfig = await getConfig();
-  const src = cli._[0];
   const opt = {
-    ...{ outDir: "bin", watch: cli.watch },
+    ...{
+      allowJs: true,
+      esModuleInterop: true,
+      jsx: "react",
+      outDir: cli.outDir || "bin",
+      watch: cli.watch
+    },
     ...tsconfig.compilerOptions
   };
-  const entryFile = path.join(opt.outDir, "index.tsx");
+  const src = cli._[0];
+  const dst = opt.outDir;
+  const entryFile = path.join(dst, "index.tsx");
 
-  await fs.remove(opt.outDir);
-  await createEntry(src, opt.outDir);
+  await fs.remove(dst);
+  await createJsEntry(dst);
+  await createTsEntry(src, dst);
 
   // Watching the entry and rebuilding the generated file will invoke TS.
   // Setting { persistent: false } allows ^C to work.
   await chokidar.watch(src, { persistent: false }).on("all", async () => {
-    createEntry(src, opt.outDir);
+    createTsEntry(src, dst);
   });
 
   // We have to run this with concurrently because running a script in watch

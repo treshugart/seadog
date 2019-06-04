@@ -1,8 +1,0 @@
-{
-  "compilerOptions": {
-    "esModuleInterop": true,
-    "jsx": "react",
-    "outDir": "bin"
-  },
-  "include": ["src"]
-}
