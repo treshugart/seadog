@@ -4,8 +4,8 @@
 
 - ⚛️ Use React!
 - 📔 Your class names are your command names.
-- 👮 TypeScript or Flow types for props generate CLI args.
-- 🔮 Default help command.
+- 👮 CLI options are generated from your TS prop types.
+- 🔮 Default `help` command included.
 
 It's inspired heavily by [`pastel`](https://github.com/vadimdemedes/pastel) with
 two fundamental differences:
@@ -14,7 +14,7 @@ two fundamental differences:
    system. This means you can expicitly define command components and can
    co-locate utilities and non-command code.
 2. It doesn't use `prop-types`. Instead it extracts prop information from
-   TypeScript of Flow types using
+   TypeScript prop types using
    [`extract-react-types`](https://github.com/atlassian/extract-react-types).
 
 ## Install
@@ -140,10 +140,3 @@ type Children = Array<{
   }>;
 }>;
 ```
-
-## Future plans
-
-1. AOT compilation. Everything currently uses `@babel/register` and `ts-node`.
-   This incurs parsing overhead that isn't necessary as it can be done ahead of
-   time. It just requires a significant amount of work to implement, so I've
-   opted not to do this while building this proof-of-concept.
