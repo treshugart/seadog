@@ -1,19 +1,24 @@
-import { Box, Text } from "ink";
-import React from "react";
-import { Indent, Layout, Line, Prose } from "./components";
+import { Box } from "ink";
+import * as React from "react";
+import { Indent, Line, Prose } from "./components";
 
 type HelpProps = {
-  children: Array<Object>,
-
   // The command that the help will be printed for. Leave empty to see a list of all commands.
-  command: string
+  name?: string;
+  commands?: object;
 };
 
-const HelpOne = ({ children, command }) => {
-  const cmd = children.reduce((p, c) => {
-    return c.commandName === command ? c : p;
-  });
-  const props = cmd.props.filter(p => p.name !== "children");
+const HelpOne = ({ name = "", commands = {} }: HelpProps) => {
+  const cmd = commands[name];
+  const props = {};
+
+  for (const prop of cmd.props) {
+    if (prop.description) {
+      props[prop.name] = prop;
+    }
+  }
+
+  const hasProps = !!Object.keys(props).length;
   const maxName = Object.keys(props).reduce((p, n) => {
     const nl = props[n].name.length;
     return p > nl ? p : nl;
@@ -24,7 +29,7 @@ const HelpOne = ({ children, command }) => {
   }, 0);
 
   return (
-    <Layout>
+    <React.Fragment>
       <Prose>{`
         Usage
         -----
@@ -38,7 +43,7 @@ const HelpOne = ({ children, command }) => {
           }`;
         })}
       </Box>
-      {props.length ? (
+      {hasProps ? (
         <>
           <Line />
           <Prose>{`
@@ -62,45 +67,41 @@ const HelpOne = ({ children, command }) => {
       ) : (
         ""
       )}
-    </Layout>
+    </React.Fragment>
   );
 };
 
-const HelpAll = ({ children }) => {
-  const chr = children;
+const HelpAll = ({ commands = {} }: { commands?: object }) => {
+  const chr = Object.values(commands);
   const max = chr.reduce((p, n) => {
     const nl = n.commandName.length;
     return p > nl ? p : nl;
   }, 0);
   return (
-    <Layout>
+    <React.Fragment>
       <Prose>{`
-        Usage
-        -----
-          help
-          help --command cmd-name
-            
         Available commands
         ------------------
       `}</Prose>
-      {children.map(c => (
+      {chr.map(c => (
         <Line key={c.commandName} indent={max - c.commandName.length + 2}>
           {`${c.commandName} ${c.description}`}
         </Line>
       ))}
-    </Layout>
+    </React.Fragment>
   );
 };
 
 // Displays the available commands.
 export class Help extends React.Component<HelpProps> {
   static defaultProps = {
-    command: ""
+    name: "",
+    commands: {}
   };
   render() {
     return (
       <>
-        {this.props.command.length ? (
+        {this.props.name ? (
           <HelpOne {...this.props} />
         ) : (
           <HelpAll {...this.props} />
